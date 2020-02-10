@@ -10,20 +10,40 @@ include "base.thrift"
 typedef base.ID AuthDataID
 typedef base.ID SubjectID
 typedef string Token
-typedef string Realm
 typedef base.Timestamp AuthDataExpTime
 typedef map<string, string> Metadata
+typedef string Domain
 
 enum AuthDataStatus {
     active
     revoked
 }
 
+enum Realm {
+    external,
+    internal
+}
+
+/**
+* Используется как контейнер для хранения ролей в виде строки,
+* которые обрабатываются с помощью UAC
+**/
+struct UACRole {
+    1: required string role
+}
+
+/**
+* Контейнер для ролей.
+**/
+union Role {
+    1: UACRole uac_role
+}
+
 /**
  * Набор ролей для сервиса.
 **/
 struct RoleStorage {
-    1: required list<string> roles
+    1: required list<Role> roles
 }
 
 /**
@@ -39,7 +59,7 @@ struct Reference {
 **/
 struct Scope {
     1: required Reference reference
-    2: optional map<string, RoleStorage> resource_access
+    2: optional map<Domain, RoleStorage> resource_access
 }
 
 struct AuthData {
@@ -61,6 +81,11 @@ service TokenKeeper {
     * Создать новый оффлайн токен.
     **/
     AuthData Create (1: Scope scope, 2: Metadata metadata, 3: SubjectID subject_id, 4: Realm realm)
+
+    /**
+    * Обновить существующий оффлайн токен.
+    **/
+    AuthData Update (1: Scope scope, 2: Metadata metadata, 3: AuthDataID id)
 
     /**
     * Создать новый токен с ограниченным временем жизни.
