@@ -47,9 +47,6 @@ struct AuthData {
     3: required AuthDataStatus         status
     4: required Attributes             attributes
     5: required Metadata               metadata
-
-    // Realm превратился в один из атрибутов. Разумно ли?
-    // 8: required Realm                  realm
 }
 
 exception AuthDataNotFound {}
