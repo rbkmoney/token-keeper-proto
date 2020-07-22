@@ -22,7 +22,6 @@ typedef map<string, string> Metadata
 enum AuthDataStatus {
     active
     revoked
-    expired
 }
 
 struct AuthData {
@@ -33,9 +32,8 @@ struct AuthData {
     1: optional AuthDataID             id
     2: required Token                  token
     3: required AuthDataStatus         status
-    4: required AuthDataExpTime        exp_time
-    5: required Attributes             attributes
-    6: required Metadata               metadata
+    4: required Attributes             attributes
+    5: required Metadata               metadata
 
     // Realm превратился в один из атрибутов. Разумно ли?
     // 8: required Realm                  realm
@@ -43,7 +41,6 @@ struct AuthData {
 
 exception AuthDataNotFound {}
 exception AuthDataRevoked {}
-exception AuthDataExpired {}
 
 service TokenKeeper {
 
@@ -53,10 +50,13 @@ service TokenKeeper {
     AuthData Create (1: Attributes attributes, 2: Metadata metadata)
 
     /**
-    * Создать новый токен с ограниченным временем жизни.
+    * Создать новый эфемерный токен.
+    * Эфемерный токен не имеет идентификатора, потому что с ним не связаны никакие данные на
+    * стороне сервиса. Как следствие, эфемерный токен невозможно отозвать. В связи с этим
+    * клиентам рекомендуется обязательно задавать такие атрибуты, которые могут позволят время
+    * жизни токена.
     **/
-    AuthData CreateWithExpiration (1: Attributes attributes, 2: Metadata metadata, 3: AuthDataExpTime exp_time)
-    // AuthData CreateEphemeral(1: Attributes attributes, 2: Metadata metadata)?
+    AuthData CreateEphemeral (1: Attributes attributes, 2: Metadata metadata)
 
     /**
     * Получить данные токена по токену.
@@ -70,10 +70,7 @@ service TokenKeeper {
             // писануть сообщение со всеми подробностями, которые в этот момент только у клиента
             // есть.
             1: AuthDataNotFound ex1
-            /// Тут логика в том, что мы обезопашиваем клиентов от необходимости в дополнительной
-            /// логике проверки статусов, и как следствие от возможности ошибиться.
-            2: AuthDataExpired ex2
-            3: AuthDataRevoked ex3
+            2: AuthDataRevoked ex2
     )
 
     /**
