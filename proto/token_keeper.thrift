@@ -6,12 +6,25 @@ namespace java com.rbkmoney.token.keeper
 namespace erlang token_keeper
 
 include "base.thrift"
-include "attributes.thrift"
 
 typedef base.ID AuthDataID
 typedef string Token
 typedef base.Timestamp AuthDataExpTime
-typedef list<attributes.Attribute> Attributes
+
+struct Attribute {
+    /**
+     * Идентификатор атрибута в строковом представлении.
+     *
+     * Например:
+     *  - 'auth.method.id'
+     *  - 'capi.operation.invoice.id'
+     *  - 'user.realm'
+     */
+    1: required string id
+    2: required string value
+}
+
+typedef list<Attribute> Attributes
 
 // Не нужно ли усложнить до чего-то типа `map<Namespace, map<string, string>>` или даже
 // `map<Namespace, JSON>`? Могу представить ситуацию, когда сервис менеджмента api-ключей захочет
