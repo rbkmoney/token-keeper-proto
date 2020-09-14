@@ -9,7 +9,6 @@ include "base.thrift"
 
 typedef base.ID AuthDataID
 typedef string Token
-typedef base.Timestamp AuthDataExpTime
 
 struct Attribute {
     /**
