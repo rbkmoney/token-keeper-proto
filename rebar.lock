@@ -1,4 +1,4 @@
-[{<<"msgpack_proto">>,
+[{<<"bouncer_proto">>,
   {git,"git@github.com:rbkmoney/bouncer-proto.git",
        {ref,"cdbe46bff19f2b87d5669f3e8603f4bf7bb6ddac"}},
   0}].
