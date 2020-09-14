@@ -6,24 +6,12 @@ namespace java com.rbkmoney.token.keeper
 namespace erlang token_keeper
 
 include "base.thrift"
+include "proto/decisions.thrift"
 
 typedef base.ID AuthDataID
 typedef string Token
 
-struct Attribute {
-    /**
-     * Идентификатор атрибута в строковом представлении.
-     *
-     * Например:
-     *  - 'auth.method.id'
-     *  - 'capi.operation.invoice.id'
-     *  - 'user.realm'
-     */
-    1: required string id
-    2: required string value
-}
-
-typedef list<Attribute> Attributes
+typedef decisions.Context Context
 
 // Не нужно ли усложнить до чего-то типа `map<Namespace, map<string, string>>` или даже
 // `map<Namespace, JSON>`? Могу представить ситуацию, когда сервис менеджмента api-ключей захочет
@@ -44,7 +32,7 @@ struct AuthData {
     1: optional AuthDataID             id
     2: required Token                  token
     3: required AuthDataStatus         status
-    4: required Attributes             attributes
+    4: required Context                context
     5: required Metadata               metadata
 }
 
@@ -56,7 +44,7 @@ service TokenKeeper {
     /**
     * Создать новый оффлайн токен.
     **/
-    AuthData Create (1: Attributes attributes, 2: Metadata metadata)
+    AuthData Create (1: Context context, 2: Metadata metadata)
 
     /**
     * Создать новый эфемерный токен.
@@ -65,7 +53,7 @@ service TokenKeeper {
     * клиентам рекомендуется обязательно задавать такие атрибуты, которые могут позволят время
     * жизни токена.
     **/
-    AuthData CreateEphemeral (1: Attributes attributes, 2: Metadata metadata)
+    AuthData CreateEphemeral (1: Context context, 2: Metadata metadata)
 
     /**
     * Получить данные токена по токену.
