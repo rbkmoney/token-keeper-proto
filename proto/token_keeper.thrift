@@ -13,11 +13,8 @@ typedef string Token
 
 typedef decisions.Context Context
 
-// Не нужно ли усложнить до чего-то типа `map<Namespace, map<string, string>>` или даже
-// `map<Namespace, JSON>`? Могу представить ситуацию, когда сервис менеджмента api-ключей захочет
-// записать и непрозрачную клиентскую метадату, и какую-то свою. К тому же токены будут выписывать
-// разные сервисы.
-typedef map<string, string> Metadata
+typedef string MetadataNamespace
+typedef map<MetadataNamespace, map<string, string>> Metadata
 
 enum AuthDataStatus {
     active
