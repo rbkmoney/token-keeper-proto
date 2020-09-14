@@ -33,6 +33,13 @@ struct AuthData {
     5: required Metadata               metadata
 }
 
+exception TokenMalformed {}
+
+exception TokenUntrusted {
+    1: required string code
+    2: optional string description
+}
+
 exception AuthDataNotFound {}
 exception AuthDataRevoked {}
 
@@ -57,14 +64,10 @@ service TokenKeeper {
     **/
     AuthData GetByToken (1: Token token)
         throws (
-            // Нам не нужно больше подробностей?
-            // Сейчас получается, что ситуацию «нет токена с таким зашитым в токен id» отличить от
-            // ситуации «подпись чёт неверная» или «у нас нет такого ключа» клиент никак не сможет.
-            // Проблему я здесь вижу только в том, что кому-то не помешает в (аудит?)лог кажется
-            // писануть сообщение со всеми подробностями, которые в этот момент только у клиента
-            // есть.
-            1: AuthDataNotFound ex1
-            2: AuthDataRevoked ex2
+            1: TokenMalformed ex1
+            2: TokenUntrusted ex2
+            3: AuthDataNotFound ex3
+            4: AuthDataRevoked ex4
     )
 
     /**
