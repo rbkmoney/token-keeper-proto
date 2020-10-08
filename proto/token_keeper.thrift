@@ -6,12 +6,12 @@ namespace java com.rbkmoney.token.keeper
 namespace erlang token_keeper
 
 include "base.thrift"
-include "proto/decisions.thrift"
+include "proto/context.thrift"
 
 typedef base.ID AuthDataID
 typedef string Token
 
-typedef decisions.Context Context
+typedef context.ContextFragment ContextFragment
 
 typedef string MetadataNamespace
 typedef map<MetadataNamespace, map<string, string>> Metadata
@@ -29,7 +29,7 @@ struct AuthData {
     1: optional AuthDataID             id
     2: required Token                  token
     3: required AuthDataStatus         status
-    4: required Context                context
+    4: required ContextFragment        context
     5: required Metadata               metadata
 }
 
@@ -48,7 +48,7 @@ service TokenKeeper {
     /**
     * Создать новый оффлайн токен.
     **/
-    AuthData Create (1: Context context, 2: Metadata metadata)
+    AuthData Create (1: ContextFragment context, 2: Metadata metadata)
 
     /**
     * Создать новый эфемерный токен.
@@ -57,7 +57,7 @@ service TokenKeeper {
     * клиентам рекомендуется обязательно задавать такие атрибуты, которые позволят контролировать
     * время жизни токена.
     **/
-    AuthData CreateEphemeral (1: Context context, 2: Metadata metadata)
+    AuthData CreateEphemeral (1: ContextFragment context, 2: Metadata metadata)
 
     /**
     * Получить данные токена по токену.
