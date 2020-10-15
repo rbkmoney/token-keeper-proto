@@ -33,12 +33,17 @@ struct AuthData {
     5: required Metadata               metadata
 }
 
-exception TokenMalformed {}
-
-exception TokenUntrusted {
-    1: required string code
-    2: optional string description
-}
+/**
+ * Токен не может быть обработан.
+ * Детали того, по каким причинам обработка невозможна, можно увидеть в аудит-логе. Причинами могут
+ * выступать, например:
+ *  - невозможность распарсить токен или его содержимое,
+ *  - неподдерживаемая схема криптографической подписи,
+ *  - неверная подпись,
+ *  - невозможность найти секретный ключ, которым токен был подписан,
+ *  - ...
+ */
+exception InvalidToken {}
 
 exception AuthDataNotFound {}
 exception AuthDataRevoked {}
@@ -64,10 +69,9 @@ service TokenKeeper {
     **/
     AuthData GetByToken (1: Token token)
         throws (
-            1: TokenMalformed ex1
-            2: TokenUntrusted ex2
-            3: AuthDataNotFound ex3
-            4: AuthDataRevoked ex4
+            1: InvalidToken ex1
+            2: AuthDataNotFound ex2
+            3: AuthDataRevoked ex3
     )
 
     /**
