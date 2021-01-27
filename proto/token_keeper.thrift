@@ -31,10 +31,17 @@ struct AuthData {
     3: required AuthDataStatus         status
     4: required ContextFragment        context
     5: required Metadata               metadata
+
+    /**
+    * Данные были лениво созданы методом GetByToken и нуждаются в сохранении
+    * @deprecation Данный тэг станет неиспользуемым после окончания фазы сбора информации о
+    * существующих в системе токенах
+    **/
+    6: optional boolean                unsaved
 }
 
 struct TokenSourceContext {
-    1: required string request_origin
+    1: optional string request_origin
 }
 
 /**
@@ -51,6 +58,11 @@ exception InvalidToken {}
 
 exception AuthDataNotFound {}
 exception AuthDataRevoked {}
+
+/**
+ * Сохраняемые данные не совпадают с уже существующими
+ **/
+exception AuthDataAlreadyExists {}
 
 /**
  * Контекст токена не может быть вычислен
@@ -75,21 +87,41 @@ service TokenKeeper {
     AuthData CreateEphemeral (1: ContextFragment context, 2: Metadata metadata)
 
     /**
-    * Добавить существующий токен
+    * Добавить существующий токен.
+    * Предназначен для использования в тандеме с GetByToken для токенов, неизвестных до этого системе после
+    * подтверждения корректности вычисленного для них контекста.
+    *
+    * @deprecation Данный метод будет удален после окончания фазы сбора информации о существующих в системе токенах
     **/
-    AuthData AddExistingToken (1: Token token, 2: ContextFragment context, 3: Metadata metadata)
+    AuthData AddExistingToken (1: AuthData auth_data)
         throws (
-            1: InvalidToken ex1
+            1: AuthDataAlreadyExists ex1
     )
 
-    /**
-    * Получить данные токена по токену.
-    **/
+
+    /*
     AuthData GetByToken (1: Token token)
         throws (
             1: InvalidToken ex1
             2: AuthDataNotFound ex2
             3: AuthDataRevoked ex3
+    )
+    */
+
+    /**
+    * Получить (или вычислить) данные токена по токену.
+    * Вычисление ContextFragment производится на основе данных об обстоятельствах, при которых токен поступил
+    * в обработку, а значит корректность его результата не гарантирована.
+    *
+    * @deprecation Данный метод будет заменен на GetByToken (1: Token) после окончания фазы сбора информации о
+    * существующих в системе токенах
+    **/
+    AuthData GetByToken (1: Token token, 2: TokenSourceContext source_context)
+        throws (
+            1: InvalidToken ex1
+            2: AuthDataNotFound ex2
+            3: AuthDataRevoked ex3
+            4: ContextCreationFailed ex4
     )
 
     /**
@@ -106,19 +138,6 @@ service TokenKeeper {
     void Revoke (1: AuthDataID id)
         throws (
             1: AuthDataNotFound ex1
-    )
-
-    /**
-    * Вычислить ContextFragment для токена, используя данные об обстоятельствах, при которых он поступил в обработку
-    *
-    * Данный метод не изменяет состояние и не гарантирует 100% корректности полученного фрагмента. Корректность
-    * должна быть подтверждена внешним потребителем, к примеру, успешностью полной авторизации операции с использованием
-    * этого фрагмента, а сам токен может быть сохранен используя метод AddExistingToken.
-    **/
-    ContextFragment CalculateTokenContext (1: Token token, 2: TokenSourceContext source_context)
-        throws (
-            1: InvalidToken ex1
-            2: ContextCreationFailed ex2
     )
 
 }
