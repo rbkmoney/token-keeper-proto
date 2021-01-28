@@ -37,7 +37,7 @@ struct AuthData {
     * @deprecation Данный тэг станет неиспользуемым после окончания фазы сбора информации о
     * существующих в системе токенах
     **/
-    6: optional boolean                unsaved
+    6: optional bool                   unsaved
 }
 
 struct TokenSourceContext {
