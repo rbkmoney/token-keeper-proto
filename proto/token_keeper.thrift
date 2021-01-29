@@ -15,6 +15,7 @@ typedef context.ContextFragment ContextFragment
 
 typedef string MetadataNamespace
 typedef map<MetadataNamespace, map<string, string>> Metadata
+typedef string Authority
 
 enum AuthDataStatus {
     active
@@ -31,33 +32,14 @@ struct AuthData {
     3: required AuthDataStatus         status
     4: required ContextFragment        context
     5: required Metadata               metadata
+    /**
+    * Сущность, выпустивщая данный токен
+    **/
     6: required Authority              authority
 }
 
 struct TokenSourceContext {
     1: optional string request_origin
-}
-
-/**
- * Сущность, выпустивщая данный токен
- **/
-union Authority {
-    1: AuthorityTokenKeeper token_keeper
-    2: AuthorityKeycloak keycloak
-}
-
-struct AuthorityTokenKeeper {}
-struct AuthorityKeycloak {}
-
-/**
- * Данные об уже существующем токене
- */
-struct ExisitingTokenData {
-    1: required AuthDataID             id
-    2: required Token                  token
-    3: required ContextFragment        context
-    4: required Metadata               metadata
-    5: required Authority              authority
 }
 
 /**
@@ -76,9 +58,9 @@ exception AuthDataNotFound {}
 exception AuthDataRevoked {}
 
 /**
- * Такой токен уже существует
+ * Авторизационные данные с таким ID уже существуют
  **/
-exception TokenAlreadyExists {}
+exception AuthDataAlreadyExists {}
 
 /**
  * Контекст токена не может быть вычислен
@@ -109,9 +91,9 @@ service TokenKeeper {
     *
     * @deprecation Данный метод будет удален после окончания фазы сбора информации о существующих в системе токенах
     **/
-    AuthData AddExistingToken (1: ExisitingTokenData token_data)
+    AuthData AddExistingToken (1: AuthDataID id, 2: ContextFragment context, 3: Metadata metadata)
         throws (
-            1: TokenAlreadyExists ex1
+            1: AuthDataAlreadyExists ex1
     )
 
     /*
