@@ -81,7 +81,7 @@ service TokenKeeper {
     * клиентам рекомендуется обязательно задавать такие атрибуты, которые позволят контролировать
     * время жизни токена.
     **/
-    AuthData CreateEphemeral (1: AuthDataID id, 2: ContextFragment context, 3: Metadata metadata)
+    AuthData CreateEphemeral (1: ContextFragment context, 2: Metadata metadata)
 
     /**
     * Добавить существующий токен.
