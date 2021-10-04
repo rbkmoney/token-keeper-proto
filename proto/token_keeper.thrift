@@ -27,14 +27,14 @@ struct AuthData {
      * Отсутствует у эфемерных токенов.
      */
     1: optional AuthDataID             id
-    2: required Token                  token
+    2: optional Token                  token
     3: required AuthDataStatus         status
     4: required ContextFragment        context
     5: required Metadata               metadata
     /**
     * Сущность, выпустивщая данный токен
     **/
-    6: required Authority              authority
+    6: optional Authority              authority    // deprecated
 }
 
 struct TokenSourceContext {
