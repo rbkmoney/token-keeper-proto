@@ -73,6 +73,9 @@ service TokenKeeper {
     * Создать новый оффлайн токен.
     **/
     AuthData Create (1: AuthDataID id, 2: ContextFragment context, 3: Metadata metadata)
+        throws (
+            1: AuthDataAlreadyExists ex1
+    )
 
     /**
     * Создать новый эфемерный токен.
