@@ -21,20 +21,29 @@ enum AuthDataStatus {
     revoked
 }
 
+/**
+* Авторизационные данные.
+*/
 struct AuthData {
     /**
      * Основной идентификатор авторизационных данных.
      * Отсутствует у эфемерных токенов.
      */
     1: optional AuthDataID             id
+    /**
+     * Токен, выпущенный для авторизационных данных.
+     * Отсутствует в ситуациях, когда авторизационные данные были получены повторно после сохранения.
+     */
     2: optional Token                  token
     3: required AuthDataStatus         status
     4: required ContextFragment        context
     5: required Metadata               metadata
     /**
-    * Сущность, выпустивщая данный токен
+    * Сущность, выпустившая данный токен.
+    *
+    * @deprecation Данное поле будет удалено после окончания фазы сбора информации о существующих в системе токенах.
     **/
-    6: optional Authority              authority    // deprecated
+    6: optional Authority              authority
 }
 
 struct TokenSourceContext {
@@ -53,62 +62,32 @@ struct TokenSourceContext {
  */
 exception InvalidToken {}
 
+/**
+ * Авторизационные данные с таким ID не найдены
+ **/
 exception AuthDataNotFound {}
-exception AuthDataRevoked {}
 
 /**
  * Авторизационные данные с таким ID уже существуют
  **/
 exception AuthDataAlreadyExists {}
 
+
 /**
- * Контекст токена не может быть вычислен
- * Детали того, по каким причинам вычисление невозможно, можно увидеть в аудит-логе.
- */
-exception ContextCreationFailed {}
-
-service TokenKeeper {
-
-    /**
-    * Создать новый оффлайн токен.
-    **/
-    AuthData Create (1: AuthDataID id, 2: ContextFragment context, 3: Metadata metadata)
-        throws (
-            1: AuthDataAlreadyExists ex1
-    )
-
-    /**
-    * Создать новый эфемерный токен.
-    * Эфемерный токен не имеет идентификатора, потому что с ним не связаны никакие данные на
-    * стороне сервиса. Как следствие, эфемерный токен невозможно отозвать. В связи с этим
-    * клиентам рекомендуется обязательно задавать такие атрибуты, которые позволят контролировать
-    * время жизни токена.
-    **/
-    AuthData CreateEphemeral (1: ContextFragment context, 2: Metadata metadata)
-
-    /**
-    * Добавить существующий токен.
-    * Предназначен для использования в тандеме с GetByToken для токенов, неизвестных до этого системе после
-    * подтверждения корректности вычисленного для них контекста.
-    *
-    * @deprecation Данный метод будет удален после окончания фазы сбора информации о существующих в системе токенах
-    **/
-    AuthData AddExistingToken (1: AuthDataID id, 2: ContextFragment context, 3: Metadata metadata)
-        throws (
-            1: AuthDataAlreadyExists ex1
-    )
+ * Сервис, осуществляющий аутентификацию токенов выпущенных всеми существующими в системе authority.
+ **/
+service TokenAuthenticator {
 
     /*
     AuthData GetByToken (1: Token token)
         throws (
             1: InvalidToken ex1
             2: AuthDataNotFound ex2
-            3: AuthDataRevoked ex3
     )
     */
 
     /**
-    * Получить (или вычислить) данные токена по токену.
+    * Получить (или вычислить) авторизационные данные по токену.
     * Вычисление ContextFragment производится на основе данных об обстоятельствах, при которых токен поступил
     * в обработку, а значит корректность его результата не гарантирована.
     *
@@ -119,12 +98,47 @@ service TokenKeeper {
         throws (
             1: InvalidToken ex1
             2: AuthDataNotFound ex2
-            3: AuthDataRevoked ex3
-            4: ContextCreationFailed ex4
     )
 
     /**
-    * Получить данные токена по идентификатору.
+    * Добавить авторизационные данные для существующего токена.
+    * Метод предназначен для использования в тандеме с GetByToken для токенов, неизвестных до этого системе после
+    * подтверждения корректности вычисленного для них авторизационных данных.
+    *
+    * @deprecation Данный метод будет удален после окончания фазы сбора информации о существующих в системе токенах
+    **/
+    AuthData AddExistingToken (1: AuthDataID id, 2: ContextFragment context, 3: Metadata metadata, 4: Authority authority)
+        throws (
+            1: AuthDataAlreadyExists ex1
+    )
+
+}
+
+/**
+ * Сервис, выступающий интерфейсом к _одной_ authority.
+ * Authority ответственна за выпуск авторизационных данных и управление ими.
+ **/
+service TokenAuthority {
+
+    /**
+    * Выпустить новые авторизационные данные и токен.
+    **/
+    AuthData Create (1: AuthDataID id, 2: ContextFragment context, 3: Metadata metadata)
+        throws (
+            1: AuthDataAlreadyExists ex1
+    )
+
+    /**
+    * Выпустить новые эфемерные авторизационные данные и токен.
+    * Эфемерные авторизационные данные не имеют идентификатора, потому что с ними не связаны никакие данные на
+    * стороне сервиса. Как следствие, эфемерные авторизационные данные невозможно отозвать. В связи с этим
+    * клиентам рекомендуется обязательно задавать такие атрибуты, которые позволят контролировать
+    * время жизни авторизационных данных.
+    **/
+    AuthData CreateEphemeral (1: ContextFragment context, 2: Metadata metadata)
+
+    /**
+    * Получить авторизационные данные по идентификатору.
     **/
     AuthData Get (1: AuthDataID id)
         throws (
@@ -132,7 +146,7 @@ service TokenKeeper {
     )
 
     /**
-    * Деактивировать оффлайн токен.
+    * Отозвать авторизационные данные по идентификатору.
     **/
     void Revoke (1: AuthDataID id)
         throws (
