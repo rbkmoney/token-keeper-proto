@@ -72,6 +72,8 @@ exception AuthDataNotFound {}
  **/
 exception AuthDataAlreadyExists {}
 
+exception AuthDataRevoked {}
+
 
 /**
  * Сервис, осуществляющий аутентификацию токенов выпущенных всеми существующими в системе authority.
@@ -83,6 +85,7 @@ service TokenAuthenticator {
         throws (
             1: InvalidToken ex1
             2: AuthDataNotFound ex2
+            3: AuthDataRevoked ex3
     )
     */
 
@@ -98,6 +101,7 @@ service TokenAuthenticator {
         throws (
             1: InvalidToken ex1
             2: AuthDataNotFound ex2
+            3: AuthDataRevoked ex3
     )
 
     /**
@@ -115,7 +119,24 @@ service TokenAuthenticator {
 }
 
 /**
- * Сервис, выступающий интерфейсом к _одной_ authority.
+ * Сервис, выступающий интерфейсом к одной эфемерной authority.
+ * Authority ответственна за выпуск авторизационных данных и управление ими.
+ **/
+service EphemeralTokenAuthority {
+
+    /**
+    * Выпустить новые эфемерные авторизационные данные и токен.
+    * Эфемерные авторизационные данные не имеют идентификатора, потому что с ними не связаны никакие данные на
+    * стороне сервиса. Как следствие, эфемерные авторизационные данные невозможно отозвать. В связи с этим
+    * клиентам рекомендуется обязательно задавать такие атрибуты, которые позволят контролировать
+    * время жизни авторизационных данных.
+    **/
+    AuthData Create (1: ContextFragment context, 2: Metadata metadata)
+
+}
+
+/**
+ * Сервис, выступающий интерфейсом к одной оффлайн authority.
  * Authority ответственна за выпуск авторизационных данных и управление ими.
  **/
 service TokenAuthority {
@@ -129,20 +150,12 @@ service TokenAuthority {
     )
 
     /**
-    * Выпустить новые эфемерные авторизационные данные и токен.
-    * Эфемерные авторизационные данные не имеют идентификатора, потому что с ними не связаны никакие данные на
-    * стороне сервиса. Как следствие, эфемерные авторизационные данные невозможно отозвать. В связи с этим
-    * клиентам рекомендуется обязательно задавать такие атрибуты, которые позволят контролировать
-    * время жизни авторизационных данных.
-    **/
-    AuthData CreateEphemeral (1: ContextFragment context, 2: Metadata metadata)
-
-    /**
     * Получить авторизационные данные по идентификатору.
     **/
     AuthData Get (1: AuthDataID id)
         throws (
             1: AuthDataNotFound ex1
+            2: AuthDataRevoked ex2
     )
 
     /**
