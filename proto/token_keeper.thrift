@@ -81,7 +81,7 @@ exception AuthDataRevoked {}
 service TokenAuthenticator {
 
     /*
-    AuthData AuthenticateToken (1: Token token)
+    AuthData Authenticate (1: Token token)
         throws (
             1: InvalidToken ex1
             2: AuthDataNotFound ex2
@@ -94,10 +94,10 @@ service TokenAuthenticator {
     * Вычисление ContextFragment производится на основе данных об обстоятельствах, при которых токен поступил
     * в обработку, а значит корректность его результата не гарантирована.
     *
-    * @deprecation Данный метод будет заменен на AuthenticateToken (1: Token) после окончания фазы сбора информации о
+    * @deprecation Данный метод будет заменен на Authenticate (1: Token) после окончания фазы сбора информации о
     * существующих в системе токенах
     **/
-    AuthData AuthenticateToken (1: Token token, 2: TokenSourceContext source_context)
+    AuthData Authenticate (1: Token token, 2: TokenSourceContext source_context)
         throws (
             1: InvalidToken ex1
             2: AuthDataNotFound ex2
